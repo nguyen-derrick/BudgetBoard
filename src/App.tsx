@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -36,6 +36,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Tooltip } from '@/components/ui/tooltip';
+import { Popover } from '@/components/ui/popover';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { MetricInfo } from '@/components/MetricInfo';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ChartTooltip, Filler, ArcElement, Legend);
 
@@ -85,6 +89,8 @@ type AppState = {
 };
 
 const STORAGE_KEY = 'finsight_v2_state';
+const THEME_KEY = 'budgetboard_theme';
+type ThemeMode = 'light' | 'dark';
 
 const CATEGORY_PALETTE = [
   '#2563eb',
@@ -139,6 +145,23 @@ function addDaysISO(dateISO: string, days: number) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function previousDateRange(range: { min: string; max: string }) {
+  const minDate = new Date(`${range.min}T00:00:00`);
+  const maxDate = new Date(`${range.max}T00:00:00`);
+  const dayDiff = Math.max(0, Math.round((maxDate.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24))) + 1;
+
+  const prevMax = new Date(minDate);
+  prevMax.setDate(prevMax.getDate() - 1);
+  const prevMin = new Date(prevMax);
+  prevMin.setDate(prevMin.getDate() - (dayDiff - 1));
+
+  const yyyy = (d: Date) => d.getFullYear();
+  const mm = (d: Date) => String(d.getMonth() + 1).padStart(2, '0');
+  const dd = (d: Date) => String(d.getDate()).padStart(2, '0');
+
+  return { min: `${yyyy(prevMin)}-${mm(prevMin)}-${dd(prevMin)}`, max: `${yyyy(prevMax)}-${mm(prevMax)}-${dd(prevMax)}` };
+}
+
 function formatMoney(cents: number, currency: 'CAD' | 'USD', hideCents: boolean) {
   const sign = cents < 0 ? '-' : '';
   const abs = Math.abs(cents);
@@ -172,6 +195,42 @@ function dateInRange(dateISO: string, minISO: string, maxISO: string) {
 
 function safeLower(s: string) {
   return (s || '').toLowerCase();
+}
+
+function getInitialTheme(): ThemeMode {
+  const stored = localStorage.getItem(THEME_KEY);
+  if (stored === 'light' || stored === 'dark') return stored;
+  const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+  return prefersDark ? 'dark' : 'light';
+}
+
+function applyThemeClass(theme: ThemeMode) {
+  const root = document.documentElement;
+  root.classList.remove('light', 'dark');
+  root.classList.add(theme);
+  root.style.colorScheme = theme;
+}
+
+function formatPercent(value: number, digits = 1) {
+  if (!Number.isFinite(value)) return '0%';
+  return `${value.toFixed(digits)}%`;
+}
+
+function formatDeltaCurrency(cents: number, currency: 'CAD' | 'USD', hideCents: boolean) {
+  const sign = cents >= 0 ? '+' : '-';
+  return `${sign}${formatMoney(Math.abs(cents), currency, hideCents)}`;
+}
+
+function cssHsl(varName: string, fallback: string) {
+  if (typeof window === 'undefined') return fallback;
+  const raw = getComputedStyle(document.documentElement).getPropertyValue(varName);
+  if (!raw) return fallback;
+  return `hsl(${raw.trim()})`;
+}
+
+function withAlpha(color: string, alpha: number) {
+  if (color.startsWith('hsl')) return color.replace('hsl', 'hsla').replace(')', `, ${alpha})`);
+  return color;
 }
 
 const defaultState: AppState = {
@@ -443,11 +502,17 @@ function StatCard(props: {
   value: string;
   subtitle: string;
   icon: React.ReactNode;
+  info?: { definition: string; formula: string };
 }) {
   return (
     <Card className="rounded-2xl">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{props.title}</CardTitle>
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">{props.title}</CardTitle>
+          {props.info ? (
+            <MetricInfo title={props.title} definition={props.info.definition} formula={props.info.formula} />
+          ) : null}
+        </div>
         <div className="text-muted-foreground">{props.icon}</div>
       </CardHeader>
       <CardContent>
@@ -474,6 +539,13 @@ function EmptyState(props: { title: string; detail: string; action?: React.React
 export default function FinanceDashboardV2() {
   const [state, setState] = useState<AppState>(() => loadState());
   const [tab, setTab] = useState('overview');
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    try {
+      return getInitialTheme();
+    } catch {
+      return 'light';
+    }
+  });
   const [datePreset, setDatePreset] = useState<DatePreset>('this_month');
   const [accountFilter, setAccountFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
@@ -494,6 +566,26 @@ export default function FinanceDashboardV2() {
   }, [state]);
 
   useEffect(() => {
+    applyThemeClass(theme);
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch {
+      // ignore
+    }
+  }, [theme]);
+
+  useEffect(() => {
+    const media = window.matchMedia?.('(prefers-color-scheme: dark)');
+    if (!media) return;
+    const handler = (event: MediaQueryListEvent) => {
+      if (localStorage.getItem(THEME_KEY)) return;
+      setTheme(event.matches ? 'dark' : 'light');
+    };
+    media.addEventListener('change', handler);
+    return () => media.removeEventListener('change', handler);
+  }, []);
+
+  useEffect(() => {
     if (!state.settings.smartCategorize) return;
     if (!txMerchant.trim()) return;
     if (txType !== 'expense') return;
@@ -503,7 +595,19 @@ export default function FinanceDashboardV2() {
 
   const currency = state.settings.currency;
   const hideCents = state.settings.hideCents;
+  const themeColors = useMemo(
+    () => ({
+      text: cssHsl('--foreground', '#0f172a'),
+      muted: cssHsl('--muted-foreground', '#9ca3af'),
+      border: cssHsl('--border', '#e5e7eb'),
+      primary: cssHsl('--primary', '#2563eb'),
+      accent: cssHsl('--accent', '#e5e7eb'),
+      card: cssHsl('--card', '#ffffff'),
+    }),
+    [theme]
+  );
   const range = useMemo(() => dateRangeForPreset(datePreset), [datePreset]);
+  const previousRangeWindow = useMemo(() => previousDateRange(range), [range.min, range.max]);
 
   const filteredTx = useMemo(() => {
     const s = safeLower(search);
@@ -522,6 +626,34 @@ export default function FinanceDashboardV2() {
       .sort((a, b) => (a.date < b.date ? 1 : -1));
   }, [state.transactions, range.min, range.max, accountFilter, search, state.categories]);
 
+  const previousRangeTx = useMemo(
+    () =>
+      state.transactions
+        .filter((t) => dateInRange(t.date, previousRangeWindow.min, previousRangeWindow.max))
+        .filter((t) => (accountFilter === 'all' ? true : t.accountId === accountFilter)),
+    [state.transactions, previousRangeWindow.min, previousRangeWindow.max, accountFilter]
+  );
+
+  const categoryStatsMap = useMemo(() => {
+    const map = new Map<
+      string,
+      { txCount: number; totalCents: number; merchants: Map<string, { count: number; totalCents: number }> }
+    >();
+
+    for (const t of filteredTx) {
+      const entry = map.get(t.categoryId) || { txCount: 0, totalCents: 0, merchants: new Map() };
+      entry.txCount += 1;
+      if (t.type === 'expense') entry.totalCents += t.amountCents;
+      const merchantEntry = entry.merchants.get(t.merchant) || { count: 0, totalCents: 0 };
+      merchantEntry.count += 1;
+      if (t.type === 'expense') merchantEntry.totalCents += t.amountCents;
+      entry.merchants.set(t.merchant, merchantEntry);
+      map.set(t.categoryId, entry);
+    }
+
+    return map;
+  }, [filteredTx]);
+
   const totals = useMemo(() => {
     let income = 0;
     let expense = 0;
@@ -533,6 +665,18 @@ export default function FinanceDashboardV2() {
     const savingsRate = income > 0 ? Math.round((net / income) * 100) : 0;
     return { income, expense, net, savingsRate };
   }, [filteredTx]);
+
+  const previousTotals = useMemo(() => {
+    let income = 0;
+    let expense = 0;
+    for (const t of previousRangeTx) {
+      if (t.type === 'income') income += t.amountCents;
+      else expense += t.amountCents;
+    }
+    const net = income - expense;
+    const savingsRate = income > 0 ? Math.round((net / income) * 100) : 0;
+    return { income, expense, net, savingsRate };
+  }, [previousRangeTx]);
 
   const budgetStats = useMemo(() => {
     const budgets = state.categories
@@ -574,6 +718,7 @@ export default function FinanceDashboardV2() {
 
     return rows.slice(0, 8);
   }, [filteredTx, state.categories]);
+  const previousCategoryTotals = useMemo(() => groupExpenseByCategory(previousRangeTx), [previousRangeTx]);
 
   const cashflow = useMemo(() => {
     const daily = groupByDayNet(filteredTx.slice().reverse());
@@ -611,10 +756,23 @@ export default function FinanceDashboardV2() {
 
     return { value, label };
   }, [state.transactions, state.categories]);
+  const categoryHoverDetail = useCallback(
+    (categoryId: string) => {
+      const entry = categoryStatsMap.get(categoryId);
+      if (!entry) return { txCount: 0, merchants: [] as { name: string; count: number; totalCents: number }[] };
+      const merchants = Array.from(entry.merchants.entries())
+        .map(([name, data]) => ({ name, count: data.count, totalCents: data.totalCents }))
+        .sort((a, b) => b.totalCents - a.totalCents)
+        .slice(0, 3);
+      return { txCount: entry.txCount, merchants };
+    },
+    [categoryStatsMap]
+  );
 
   const cashflowChart = useMemo(() => {
     const labels = cashflow.map((d) => d.date);
     const dataValues = cashflow.map((d) => d.runningCents / 100);
+    const finalCents = cashflow.length ? cashflow[cashflow.length - 1].runningCents : 0;
 
     return {
       data: {
@@ -623,8 +781,8 @@ export default function FinanceDashboardV2() {
           {
             label: 'Net',
             data: dataValues,
-            borderColor: '#22d3ee',
-            backgroundColor: 'rgba(34, 211, 238, 0.15)',
+            borderColor: themeColors.primary,
+            backgroundColor: withAlpha(themeColors.primary, 0.15),
             fill: true,
             tension: 0.35,
             borderWidth: 2,
@@ -641,30 +799,45 @@ export default function FinanceDashboardV2() {
             callbacks: {
               label: (ctx: any) =>
                 formatMoney(Math.round(Number(ctx.parsed.y) * 100), currency, hideCents),
+              afterBody: (items) => {
+                if (!items.length) return [];
+                const item = items[0];
+                const currentCents = Math.round(Number(item.raw) * 100);
+                const prevValue = item.dataIndex > 0 ? Math.round(Number(dataValues[item.dataIndex - 1]) * 100) : currentCents;
+                const delta = currentCents - prevValue;
+                const share = finalCents !== 0 ? formatPercent((currentCents / finalCents) * 100) : '0%';
+                const prevPeriodDelta = formatDeltaCurrency(currentCents - previousTotals.net, currency, hideCents);
+                return [
+                  `Δ prev point: ${formatDeltaCurrency(delta, currency, hideCents)}`,
+                  `Share of final: ${share}`,
+                  `Δ vs prev period: ${prevPeriodDelta}`,
+                ];
+              },
             },
           },
         },
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: '#9ca3af', maxRotation: 0 },
+            ticks: { color: themeColors.muted, maxRotation: 0 },
           },
           y: {
-            grid: { color: 'rgba(148,163,184,0.25)' },
+            grid: { color: withAlpha(themeColors.muted, 0.25) },
             ticks: {
-              color: '#9ca3af',
+              color: themeColors.muted,
               callback: (v: any) => (hideCents ? `${Math.round(Number(v))}` : `${v}`),
             },
           },
         },
       },
     };
-  }, [cashflow, currency, hideCents]);
+  }, [cashflow, currency, hideCents, themeColors, previousTotals.net]);
 
   const categoryPieChart = useMemo(() => {
     const labels = categoryPie.map((c) => c.name);
     const values = categoryPie.map((c) => c.value / 100);
     const colors = categoryPie.map((c) => categoryColour(c.categoryId));
+    const total = values.reduce((sum, v) => sum + v, 0);
 
     return {
       data: {
@@ -682,14 +855,21 @@ export default function FinanceDashboardV2() {
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: (ctx: any) =>
-                `${ctx.label}: ${formatMoney(Math.round(Number(ctx.raw) * 100), currency, hideCents)}`,
+              label: (ctx: any) => {
+                const raw = Number(ctx.raw);
+                const cents = Math.round(raw * 100);
+                const percent = total > 0 ? formatPercent((raw / total) * 100) : '0%';
+                const categoryId = categoryPie[ctx.dataIndex]?.categoryId;
+                const prev = categoryId ? previousCategoryTotals.get(categoryId) || 0 : 0;
+                const delta = formatDeltaCurrency(cents - prev, currency, hideCents);
+                return `${ctx.label}: ${formatMoney(cents, currency, hideCents)} (${percent}, Δ ${delta})`;
+              },
             },
           },
         },
       },
     };
-  }, [categoryPie, currency, hideCents]);
+  }, [categoryPie, currency, hideCents, previousCategoryTotals]);
 
   function resetState() {
     setState(defaultState);
@@ -833,10 +1013,12 @@ export default function FinanceDashboardV2() {
           onAddTx={() => setTxModalOpen(true)}
           onExport={() => exportCSV(state)}
           onImport={() => setImportOpen(true)}
+          theme={theme}
+          onThemeChange={setTheme}
         />
 
         <Tabs value={tab} onValueChange={setTab} className="mt-6">
-          <TabsList className="grid w-full grid-cols-5 rounded-2xl">
+          <TabsList className="grid w-full grid-cols-2 rounded-2xl sm:grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
             <TabsTrigger value="budgets">Budgets</TabsTrigger>
@@ -845,39 +1027,46 @@ export default function FinanceDashboardV2() {
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               <StatCard
                 title="Income"
                 value={formatMoney(totals.income, currency, hideCents)}
                 subtitle="In selected range"
                 icon={<ArrowUp className="h-4 w-4" />}
+                info={{ definition: 'Total income in the selected date range and filters.', formula: 'Sum of income transaction amounts.' }}
               />
               <StatCard
                 title="Spending"
                 value={formatMoney(totals.expense, currency, hideCents)}
                 subtitle="In selected range"
                 icon={<ArrowDown className="h-4 w-4" />}
+                info={{ definition: 'Total expenses in the selected date range and filters.', formula: 'Sum of expense transaction amounts.' }}
               />
               <StatCard
                 title="Net"
                 value={formatMoney(totals.net, currency, hideCents)}
                 subtitle={`Savings rate: ${totals.savingsRate}%`}
                 icon={<Wallet className="h-4 w-4" />}
+                info={{ definition: 'Income minus spending for the selected range.', formula: 'Net = Income - Spending.' }}
               />
               <StatCard
                 title="Safe to spend"
                 value={formatMoney(safeToSpend.value, currency, hideCents)}
                 subtitle={safeToSpend.label}
                 icon={<Target className="h-4 w-4" />}
+                info={{
+                  definition: 'Projected available funds after budgets or current net.',
+                  formula: 'Uses budget remaining if budgets exist; otherwise net income minus expenses.',
+                }}
               />
             </div>
 
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
               <Card className="rounded-2xl">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">Cashflow</CardTitle>
                 </CardHeader>
-                <CardContent className="h-[260px]">
+                <CardContent className="h-[220px] sm:h-[260px] lg:h-[320px]">
                   {cashflow.length === 0 ? (
                     <EmptyState
                       title="No data yet"
@@ -898,7 +1087,7 @@ export default function FinanceDashboardV2() {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">Spending by category</CardTitle>
                 </CardHeader>
-                <CardContent className="h-[260px]">
+                <CardContent className="h-[220px] sm:h-[260px] lg:h-[320px]">
                   {categoryPie.length === 0 ? (
                     <EmptyState title="No spending yet" detail="Expenses will show here." />
                   ) : (
@@ -917,7 +1106,14 @@ export default function FinanceDashboardV2() {
                                 aria-hidden
                               />
                               <div className="min-w-0">
-                                <div className="truncate font-medium">{c.name}</div>
+                                <div className="truncate font-medium">
+                                  <CategoryHover
+                                    label={c.name}
+                                    stats={categoryHoverDetail(c.categoryId)}
+                                    currency={currency}
+                                    hideCents={hideCents}
+                                  />
+                                </div>
                                 <div className="text-xs text-muted-foreground">{rangeLabel(datePreset)}</div>
                               </div>
                             </div>
@@ -1050,7 +1246,7 @@ export default function FinanceDashboardV2() {
                     }
                   />
                 ) : (
-                  <div className="rounded-2xl border">
+                  <div className="overflow-x-auto rounded-2xl border">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -1091,13 +1287,13 @@ export default function FinanceDashboardV2() {
           </TabsContent>
 
           <TabsContent value="budgets" className="mt-6">
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 lg:grid-cols-3">
               <Card className="rounded-2xl md:col-span-2">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">Monthly budgets</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="rounded-2xl border">
+                  <div className="overflow-x-auto rounded-2xl border">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -1112,15 +1308,24 @@ export default function FinanceDashboardV2() {
                           .filter((c) => c.id !== 'cat_income')
                           .map((c) => {
                             const spent =
+                              budgetStats.rows.find((r) => r.categoryId === c.id)?.spentCents ||
                               groupExpenseByCategory(
                                 state.transactions.filter((t) => dateInRange(t.date, range.min, range.max))
-                              ).get(c.id) || 0;
+                              ).get(c.id) ||
+                              0;
                             const budget = c.monthlyBudgetCents || 0;
                             const remaining = budget - spent;
 
                             return (
                               <TableRow key={c.id}>
-                                <TableCell className="font-medium">{categoryLabel(state.categories, c.id)}</TableCell>
+                                <TableCell className="font-medium">
+                                  <CategoryHover
+                                    label={categoryLabel(state.categories, c.id)}
+                                    stats={categoryHoverDetail(c.id)}
+                                    currency={currency}
+                                    hideCents={hideCents}
+                                  />
+                                </TableCell>
                                 <TableCell className="text-right">
                                   <BudgetInput
                                     valueCents={budget}
@@ -1427,6 +1632,8 @@ function Header(props: {
   onAddTx: () => void;
   onExport: () => void;
   onImport: () => void;
+  theme: ThemeMode;
+  onThemeChange: (theme: ThemeMode) => void;
 }) {
   const { state, datePreset, setDatePreset, accountFilter, setAccountFilter, search, setSearch } = props;
 
@@ -1438,13 +1645,8 @@ function Header(props: {
             <Wallet className="h-5 w-5" />
           </div>
           <div>
-<<<<<<< HEAD
-            <div className="text-xl font-semibold tracking-tight">BudgetBoard Dashboard</div>
-            <div className="text-sm text-muted-foreground">Budgeting and Expense Analytics</div>
-=======
             <div className="text-xl font-semibold tracking-tight">Finance Dashboard</div>
             <div className="text-sm text-muted-foreground">Budgeting and expense analytics</div>
->>>>>>> codex/update-finsight-to-new-version-62x3kj
           </div>
         </div>
       </div>
@@ -1490,7 +1692,8 @@ function Header(props: {
           </Select>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <ThemeToggle theme={props.theme} onToggle={props.onThemeChange} />
           <Button onClick={props.onAddTx}>
             <Plus className="mr-2 h-4 w-4" /> Add
           </Button>
@@ -1730,6 +1933,45 @@ function RuleCreator(props: { categories: Category[]; onCreate: (contains: strin
         Add rule
       </Button>
     </div>
+  );
+}
+
+function CategoryHover(props: {
+  label: string;
+  stats: { txCount: number; merchants: { name: string; count: number; totalCents: number }[] };
+  currency: 'CAD' | 'USD';
+  hideCents: boolean;
+}) {
+  return (
+    <Popover
+      content={
+        <div className="space-y-1">
+          <div className="text-xs font-semibold">{props.label}</div>
+          <div className="text-xs text-muted-foreground">Transactions: {props.stats.txCount}</div>
+          {props.stats.merchants.length > 0 ? (
+            <div className="space-y-1">
+              {props.stats.merchants.map((m) => (
+                <div key={m.name} className="flex items-center justify-between text-xs">
+                  <span className="truncate pr-2">{m.name}</span>
+                  <span className="text-muted-foreground">
+                    {m.count} · {formatMoney(m.totalCents, props.currency, props.hideCents)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-xs text-muted-foreground">No merchants yet.</div>
+          )}
+        </div>
+      }
+    >
+      <span
+        tabIndex={0}
+        className="cursor-help underline decoration-dashed underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      >
+        {props.label}
+      </span>
+    </Popover>
   );
 }
 
