@@ -1438,8 +1438,13 @@ function Header(props: {
             <Wallet className="h-5 w-5" />
           </div>
           <div>
+<<<<<<< HEAD
             <div className="text-xl font-semibold tracking-tight">BudgetBoard Dashboard</div>
             <div className="text-sm text-muted-foreground">Budgeting and Expense Analytics</div>
+=======
+            <div className="text-xl font-semibold tracking-tight">Finance Dashboard</div>
+            <div className="text-sm text-muted-foreground">Budgeting and expense analytics</div>
+>>>>>>> codex/update-finsight-to-new-version-62x3kj
           </div>
         </div>
       </div>
