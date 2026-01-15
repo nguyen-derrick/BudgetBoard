@@ -9,6 +9,8 @@ import {
   Filler,
   ArcElement,
   Legend,
+  ScriptableContext,
+  TooltipItem,
 } from 'chart.js';
 import { Line, Pie as PieChart } from 'react-chartjs-2';
 import {
@@ -252,9 +254,9 @@ const defaultState: AppState = {
     { id: 'cat_income', name: 'Income', emoji: '💰' },
   ],
   rules: [
-    { id: 'r1', contains: 'uber', categoryId: 'cat_trans' },
-    { id: 'r2', contains: 'loblaws', categoryId: 'cat_gro' },
-    { id: 'r3', contains: 'spotify', categoryId: 'cat_subs' },
+    { id: 'r1', contains: 'Uber', categoryId: 'cat_trans' },
+    { id: 'r2', contains: 'Loblaws', categoryId: 'cat_gro' },
+    { id: 'r3', contains: 'Spotify', categoryId: 'cat_subs' },
   ],
   transactions: [
     {
@@ -305,25 +307,25 @@ const defaultState: AppState = {
     },
     {
       id: 't6',
-      date: '2025-09-08',
-      merchant: 'Farmers Market',
-      amountCents: 5600,
+      date: '2025-01-01',
+      merchant: 'Rent',
+      amountCents: 180000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't7',
+      date: '2025-01-10',
+      merchant: 'Groceries',
+      amountCents: 35600,
       type: 'expense',
       categoryId: 'cat_gro',
       accountId: 'acc_cc',
     },
     {
-      id: 't7',
-      date: '2025-09-15',
-      merchant: 'Commuter Pass',
-      amountCents: 12000,
-      type: 'expense',
-      categoryId: 'cat_trans',
-      accountId: 'acc_cc',
-    },
-    {
       id: 't8',
-      date: '2025-09-30',
+      date: '2025-01-15',
       merchant: 'Paycheque',
       amountCents: 240000,
       type: 'income',
@@ -332,6 +334,395 @@ const defaultState: AppState = {
     },
     {
       id: 't9',
+      date: '2025-01-22',
+      merchant: 'Transit Pass',
+      amountCents: 12000,
+      type: 'expense',
+      categoryId: 'cat_trans',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't10',
+      date: '2025-01-31',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't11',
+      date: '2025-02-01',
+      merchant: 'Rent',
+      amountCents: 180000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't12',
+      date: '2025-02-08',
+      merchant: 'Pharmacy',
+      amountCents: 6800,
+      type: 'expense',
+      categoryId: 'cat_health',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't13',
+      date: '2025-02-15',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't14',
+      date: '2025-02-19',
+      merchant: 'Dining Out',
+      amountCents: 24500,
+      type: 'expense',
+      categoryId: 'cat_eat',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't15',
+      date: '2025-02-28',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't16',
+      date: '2025-03-01',
+      merchant: 'Rent',
+      amountCents: 180000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't17',
+      date: '2025-03-06',
+      merchant: 'Groceries',
+      amountCents: 39200,
+      type: 'expense',
+      categoryId: 'cat_gro',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't18',
+      date: '2025-03-15',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't19',
+      date: '2025-03-21',
+      merchant: 'Utilities',
+      amountCents: 16500,
+      type: 'expense',
+      categoryId: 'cat_other',
+      accountId: 'acc_cheq',
+      note: 'Electricity + internet',
+    },
+    {
+      id: 't20',
+      date: '2025-03-31',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't21',
+      date: '2025-04-01',
+      merchant: 'Rent',
+      amountCents: 180000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't22',
+      date: '2025-04-09',
+      merchant: 'Commuter Pass',
+      amountCents: 12000,
+      type: 'expense',
+      categoryId: 'cat_trans',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't23',
+      date: '2025-04-15',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't24',
+      date: '2025-04-18',
+      merchant: 'Market Groceries',
+      amountCents: 41000,
+      type: 'expense',
+      categoryId: 'cat_gro',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't25',
+      date: '2025-04-30',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't26',
+      date: '2025-05-01',
+      merchant: 'Rent',
+      amountCents: 180000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't27',
+      date: '2025-05-05',
+      merchant: 'Dentist Checkup',
+      amountCents: 18000,
+      type: 'expense',
+      categoryId: 'cat_health',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't28',
+      date: '2025-05-15',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't29',
+      date: '2025-05-20',
+      merchant: 'Patio Dinner',
+      amountCents: 32000,
+      type: 'expense',
+      categoryId: 'cat_eat',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't30',
+      date: '2025-05-31',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't31',
+      date: '2025-06-01',
+      merchant: 'Rent',
+      amountCents: 180000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't32',
+      date: '2025-06-07',
+      merchant: 'Grocery Stock-up',
+      amountCents: 45000,
+      type: 'expense',
+      categoryId: 'cat_gro',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't33',
+      date: '2025-06-15',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't34',
+      date: '2025-06-22',
+      merchant: 'Weekend Trip',
+      amountCents: 52000,
+      type: 'expense',
+      categoryId: 'cat_other',
+      accountId: 'acc_cc',
+      note: 'Cabin getaway',
+    },
+    {
+      id: 't35',
+      date: '2025-06-30',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't36',
+      date: '2025-07-01',
+      merchant: 'Rent',
+      amountCents: 180000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't37',
+      date: '2025-07-04',
+      merchant: 'Summer Festival',
+      amountCents: 28000,
+      type: 'expense',
+      categoryId: 'cat_other',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't38',
+      date: '2025-07-15',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't39',
+      date: '2025-07-19',
+      merchant: 'BBQ Supplies',
+      amountCents: 31000,
+      type: 'expense',
+      categoryId: 'cat_gro',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't40',
+      date: '2025-07-31',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't41',
+      date: '2025-08-01',
+      merchant: 'Rent',
+      amountCents: 180000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't42',
+      date: '2025-08-08',
+      merchant: 'Rideshare',
+      amountCents: 1900,
+      type: 'expense',
+      categoryId: 'cat_trans',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't43',
+      date: '2025-08-15',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't44',
+      date: '2025-08-24',
+      merchant: 'Back-to-school Shopping',
+      amountCents: 64000,
+      type: 'expense',
+      categoryId: 'cat_other',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't45',
+      date: '2025-08-31',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't46',
+      date: '2025-09-01',
+      merchant: 'Rent',
+      amountCents: 180000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't47',
+      date: '2025-09-08',
+      merchant: 'Farmers Market',
+      amountCents: 5600,
+      type: 'expense',
+      categoryId: 'cat_gro',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't48',
+      date: '2025-09-15',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't49',
+      date: '2025-09-20',
+      merchant: 'Transit Pass',
+      amountCents: 12000,
+      type: 'expense',
+      categoryId: 'cat_trans',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't50',
+      date: '2025-09-30',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't51',
+      date: '2025-10-01',
+      merchant: 'Rent',
+      amountCents: 180000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't52',
       date: '2025-10-10',
       merchant: 'Dentist',
       amountCents: 32000,
@@ -340,7 +731,16 @@ const defaultState: AppState = {
       accountId: 'acc_cheq',
     },
     {
-      id: 't10',
+      id: 't53',
+      date: '2025-10-15',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't54',
       date: '2025-10-22',
       merchant: 'Meal Prep',
       amountCents: 18500,
@@ -349,7 +749,7 @@ const defaultState: AppState = {
       accountId: 'acc_cc',
     },
     {
-      id: 't11',
+      id: 't55',
       date: '2025-10-31',
       merchant: 'Paycheque',
       amountCents: 240000,
@@ -358,7 +758,16 @@ const defaultState: AppState = {
       accountId: 'acc_cheq',
     },
     {
-      id: 't12',
+      id: 't56',
+      date: '2025-11-01',
+      merchant: 'Rent',
+      amountCents: 180000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't57',
       date: '2025-11-05',
       merchant: 'Holiday Flights',
       amountCents: 65000,
@@ -368,7 +777,16 @@ const defaultState: AppState = {
       note: 'Family travel',
     },
     {
-      id: 't13',
+      id: 't58',
+      date: '2025-11-15',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't59',
       date: '2025-11-18',
       merchant: 'Grocery Stock-up',
       amountCents: 42000,
@@ -377,7 +795,7 @@ const defaultState: AppState = {
       accountId: 'acc_cc',
     },
     {
-      id: 't14',
+      id: 't60',
       date: '2025-11-28',
       merchant: 'Black Friday Electronics',
       amountCents: 98000,
@@ -386,7 +804,7 @@ const defaultState: AppState = {
       accountId: 'acc_cc',
     },
     {
-      id: 't15',
+      id: 't61',
       date: '2025-11-30',
       merchant: 'Paycheque',
       amountCents: 240000,
@@ -395,7 +813,16 @@ const defaultState: AppState = {
       accountId: 'acc_cheq',
     },
     {
-      id: 't16',
+      id: 't62',
+      date: '2025-12-01',
+      merchant: 'Rent',
+      amountCents: 180000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't63',
       date: '2025-12-03',
       merchant: 'Gifts & Decor',
       amountCents: 75000,
@@ -404,7 +831,7 @@ const defaultState: AppState = {
       accountId: 'acc_cc',
     },
     {
-      id: 't17',
+      id: 't64',
       date: '2025-12-12',
       merchant: 'Dining Out',
       amountCents: 28000,
@@ -413,7 +840,16 @@ const defaultState: AppState = {
       accountId: 'acc_cc',
     },
     {
-      id: 't18',
+      id: 't65',
+      date: '2025-12-15',
+      merchant: 'Paycheque',
+      amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't66',
       date: '2025-12-20',
       merchant: 'Charity Donation',
       amountCents: 30000,
@@ -422,10 +858,570 @@ const defaultState: AppState = {
       accountId: 'acc_cheq',
     },
     {
-      id: 't19',
+      id: 't67',
       date: '2025-12-31',
       merchant: 'Paycheque',
       amountCents: 240000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't68',
+      date: '2026-01-01',
+      merchant: 'Rent',
+      amountCents: 185000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't69',
+      date: '2026-01-07',
+      merchant: 'Groceries',
+      amountCents: 38000,
+      type: 'expense',
+      categoryId: 'cat_gro',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't70',
+      date: '2026-01-15',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't71',
+      date: '2026-01-22',
+      merchant: 'Transit Pass',
+      amountCents: 12500,
+      type: 'expense',
+      categoryId: 'cat_trans',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't72',
+      date: '2026-01-31',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't73',
+      date: '2026-02-01',
+      merchant: 'Rent',
+      amountCents: 185000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't74',
+      date: '2026-02-06',
+      merchant: 'Pharmacy',
+      amountCents: 7200,
+      type: 'expense',
+      categoryId: 'cat_health',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't75',
+      date: '2026-02-15',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't76',
+      date: '2026-02-20',
+      merchant: 'Dining Out',
+      amountCents: 26000,
+      type: 'expense',
+      categoryId: 'cat_eat',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't77',
+      date: '2026-02-28',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't78',
+      date: '2026-03-01',
+      merchant: 'Rent',
+      amountCents: 185000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't79',
+      date: '2026-03-08',
+      merchant: 'Grocery Stock-up',
+      amountCents: 43000,
+      type: 'expense',
+      categoryId: 'cat_gro',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't80',
+      date: '2026-03-15',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't81',
+      date: '2026-03-19',
+      merchant: 'Utilities',
+      amountCents: 17500,
+      type: 'expense',
+      categoryId: 'cat_other',
+      accountId: 'acc_cheq',
+      note: 'Hydro + internet',
+    },
+    {
+      id: 't82',
+      date: '2026-03-31',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't83',
+      date: '2026-04-01',
+      merchant: 'Rent',
+      amountCents: 185000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't84',
+      date: '2026-04-09',
+      merchant: 'Commuter Pass',
+      amountCents: 12500,
+      type: 'expense',
+      categoryId: 'cat_trans',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't85',
+      date: '2026-04-15',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't86',
+      date: '2026-04-21',
+      merchant: 'Meal Kit',
+      amountCents: 21000,
+      type: 'expense',
+      categoryId: 'cat_gro',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't87',
+      date: '2026-04-30',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't88',
+      date: '2026-05-01',
+      merchant: 'Rent',
+      amountCents: 185000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't89',
+      date: '2026-05-06',
+      merchant: 'Annual Checkup',
+      amountCents: 22000,
+      type: 'expense',
+      categoryId: 'cat_health',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't90',
+      date: '2026-05-15',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't91',
+      date: '2026-05-23',
+      merchant: 'Concert Tickets',
+      amountCents: 54000,
+      type: 'expense',
+      categoryId: 'cat_other',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't92',
+      date: '2026-05-31',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't93',
+      date: '2026-06-01',
+      merchant: 'Rent',
+      amountCents: 185000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't94',
+      date: '2026-06-07',
+      merchant: 'Groceries',
+      amountCents: 46000,
+      type: 'expense',
+      categoryId: 'cat_gro',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't95',
+      date: '2026-06-15',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't96',
+      date: '2026-06-24',
+      merchant: 'Weekend Getaway',
+      amountCents: 60000,
+      type: 'expense',
+      categoryId: 'cat_other',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't97',
+      date: '2026-06-30',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't98',
+      date: '2026-07-01',
+      merchant: 'Rent',
+      amountCents: 185000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't99',
+      date: '2026-07-05',
+      merchant: 'Farmers Market',
+      amountCents: 7200,
+      type: 'expense',
+      categoryId: 'cat_gro',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't100',
+      date: '2026-07-15',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't101',
+      date: '2026-07-20',
+      merchant: 'Summer BBQ',
+      amountCents: 34000,
+      type: 'expense',
+      categoryId: 'cat_gro',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't102',
+      date: '2026-07-31',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't103',
+      date: '2026-08-01',
+      merchant: 'Rent',
+      amountCents: 185000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't104',
+      date: '2026-08-09',
+      merchant: 'Rideshare',
+      amountCents: 2300,
+      type: 'expense',
+      categoryId: 'cat_trans',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't105',
+      date: '2026-08-15',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't106',
+      date: '2026-08-22',
+      merchant: 'Back-to-school Supplies',
+      amountCents: 68000,
+      type: 'expense',
+      categoryId: 'cat_other',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't107',
+      date: '2026-08-31',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't108',
+      date: '2026-09-01',
+      merchant: 'Rent',
+      amountCents: 185000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't109',
+      date: '2026-09-08',
+      merchant: 'Grocery Run',
+      amountCents: 41000,
+      type: 'expense',
+      categoryId: 'cat_gro',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't110',
+      date: '2026-09-15',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't111',
+      date: '2026-09-19',
+      merchant: 'Transit Pass',
+      amountCents: 12500,
+      type: 'expense',
+      categoryId: 'cat_trans',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't112',
+      date: '2026-09-30',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't113',
+      date: '2026-10-01',
+      merchant: 'Rent',
+      amountCents: 185000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't114',
+      date: '2026-10-11',
+      merchant: 'Dental Cleaning',
+      amountCents: 24000,
+      type: 'expense',
+      categoryId: 'cat_health',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't115',
+      date: '2026-10-15',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't116',
+      date: '2026-10-23',
+      merchant: 'Meal Prep',
+      amountCents: 19500,
+      type: 'expense',
+      categoryId: 'cat_gro',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't117',
+      date: '2026-10-31',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't118',
+      date: '2026-11-01',
+      merchant: 'Rent',
+      amountCents: 185000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't119',
+      date: '2026-11-05',
+      merchant: 'Holiday Flights',
+      amountCents: 70000,
+      type: 'expense',
+      categoryId: 'cat_other',
+      accountId: 'acc_cc',
+      note: 'Family travel',
+    },
+    {
+      id: 't120',
+      date: '2026-11-15',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't121',
+      date: '2026-11-18',
+      merchant: 'Grocery Stock-up',
+      amountCents: 44000,
+      type: 'expense',
+      categoryId: 'cat_gro',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't122',
+      date: '2026-11-27',
+      merchant: 'Black Friday Home Office',
+      amountCents: 82000,
+      type: 'expense',
+      categoryId: 'cat_other',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't123',
+      date: '2026-11-30',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't124',
+      date: '2026-12-01',
+      merchant: 'Rent',
+      amountCents: 185000,
+      type: 'expense',
+      categoryId: 'cat_rent',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't125',
+      date: '2026-12-04',
+      merchant: 'Gifts & Decor',
+      amountCents: 78000,
+      type: 'expense',
+      categoryId: 'cat_other',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't126',
+      date: '2026-12-12',
+      merchant: 'Dining Out',
+      amountCents: 30000,
+      type: 'expense',
+      categoryId: 'cat_eat',
+      accountId: 'acc_cc',
+    },
+    {
+      id: 't127',
+      date: '2026-12-15',
+      merchant: 'Paycheque',
+      amountCents: 250000,
+      type: 'income',
+      categoryId: 'cat_income',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't128',
+      date: '2026-12-20',
+      merchant: 'Charity Donation',
+      amountCents: 32000,
+      type: 'expense',
+      categoryId: 'cat_other',
+      accountId: 'acc_cheq',
+    },
+    {
+      id: 't129',
+      date: '2026-12-31',
+      merchant: 'Paycheque',
+      amountCents: 250000,
       type: 'income',
       categoryId: 'cat_income',
       accountId: 'acc_cheq',
@@ -611,15 +1607,17 @@ function applySmartCategory(merchant: string, rules: Rule[], fallbackCategoryId:
 
 function ProgressBar({ value, max }: { value: number; max: number }) {
   const pct = max <= 0 ? 0 : clamp(Math.round((value / max) * 100), 0, 120);
+  const barPct = clamp(pct, 0, 100);
   const tone = pct <= 80 ? 'bg-emerald-500' : pct <= 100 ? 'bg-amber-500' : 'bg-rose-500';
+  const statusTone = pct > 100 ? 'text-rose-600' : 'text-muted-foreground';
   return (
-    <div className="w-full">
-      <div className="h-2 w-full rounded-full bg-muted">
-        <div className={`h-2 rounded-full ${tone}`} style={{ width: `${pct}%` }} />
+    <div className="w-full space-y-2">
+      <div className="flex items-center justify-between text-xs">
+        <span className={statusTone}>{pct}%</span>
+        <span className={statusTone}>{pct > 100 ? 'Over' : 'Remaining'}</span>
       </div>
-      <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
-        <span>{pct}%</span>
-        <span>{pct > 100 ? 'Over' : 'Remaining'}</span>
+      <div className="h-2.5 w-full rounded-full bg-muted">
+        <div className={`h-2.5 rounded-full ${tone}`} style={{ width: `${barPct}%` }} />
       </div>
     </div>
   );
@@ -855,6 +1853,7 @@ export default function FinanceDashboardV2() {
       running += d.netCents;
       return {
         date: d.date.slice(5),
+        fullDate: d.date,
         runningCents: running,
         incomeCents: d.incomeCents,
         expenseCents: d.expenseCents,
@@ -901,6 +1900,10 @@ export default function FinanceDashboardV2() {
     const labels = cashflow.map((d) => d.date);
     const dataValues = cashflow.map((d) => d.runningCents / 100);
     const finalCents = cashflow.length ? cashflow[cashflow.length - 1].runningCents : 0;
+    const cashflowLineColor = theme === 'dark' ? 'rgb(96, 165, 250)' : 'rgb(37, 99, 235)';
+    const cashflowFillStart =
+      theme === 'dark' ? 'rgba(96, 165, 250, 0.3)' : 'rgba(37, 99, 235, 0.25)';
+    const cashflowFillEnd = theme === 'dark' ? 'rgba(96, 165, 250, 0)' : 'rgba(37, 99, 235, 0)';
 
     return {
       data: {
@@ -909,12 +1912,24 @@ export default function FinanceDashboardV2() {
           {
             label: 'Net',
             data: dataValues,
-            borderColor: themeColors.primary,
-            backgroundColor: withAlpha(themeColors.primary, 0.15),
+            borderColor: cashflowLineColor,
+            backgroundColor: (context: ScriptableContext<'line'>) => {
+              const { chart } = context;
+              const { ctx, chartArea } = chart;
+              if (!chartArea) return cashflowFillStart;
+              const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+              gradient.addColorStop(0, cashflowFillStart);
+              gradient.addColorStop(1, cashflowFillEnd);
+              return gradient;
+            },
             fill: true,
             tension: 0.35,
-            borderWidth: 2,
-            pointRadius: 0,
+            borderWidth: 3,
+            pointRadius: 2,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: cashflowLineColor,
+            pointHoverBorderColor: themeColors.card,
+            pointHoverBorderWidth: 2,
           },
         ],
       },
@@ -924,10 +1939,16 @@ export default function FinanceDashboardV2() {
         plugins: {
           legend: { display: false },
           tooltip: {
+            displayColors: false,
             callbacks: {
-              label: (ctx: any) =>
+              title: (items: TooltipItem<'line'>[]) => {
+                if (!items.length) return '';
+                const idx = items[0].dataIndex;
+                return cashflow[idx]?.fullDate || '';
+              },
+              label: (ctx: TooltipItem<'line'>) =>
                 formatMoney(Math.round(Number(ctx.parsed.y) * 100), currency, hideCents),
-              afterBody: (items) => {
+              afterBody: (items: TooltipItem<'line'>[]) => {
                 if (!items.length) return [];
                 const item = items[0];
                 const currentCents = Math.round(Number(item.raw) * 100);
@@ -935,7 +1956,10 @@ export default function FinanceDashboardV2() {
                 const delta = currentCents - prevValue;
                 const share = finalCents !== 0 ? formatPercent((currentCents / finalCents) * 100) : '0%';
                 const prevPeriodDelta = formatDeltaCurrency(currentCents - previousTotals.net, currency, hideCents);
+                const hoverData = cashflow[item.dataIndex];
                 return [
+                  `Income: ${formatMoney(hoverData?.incomeCents ?? 0, currency, hideCents)}`,
+                  `Expenses: ${formatMoney(hoverData?.expenseCents ?? 0, currency, hideCents)}`,
                   `Δ prev point: ${formatDeltaCurrency(delta, currency, hideCents)}`,
                   `Share of final: ${share}`,
                   `Δ vs prev period: ${prevPeriodDelta}`,
@@ -959,7 +1983,7 @@ export default function FinanceDashboardV2() {
         },
       },
     };
-  }, [cashflow, currency, hideCents, themeColors, previousTotals.net]);
+  }, [cashflow, currency, hideCents, themeColors, previousTotals.net, theme]);
 
   const categoryPieChart = useMemo(() => {
     const labels = categoryPie.map((c) => c.name);
@@ -1802,7 +2826,7 @@ function Header(props: {
   const { state, datePreset, setDatePreset, accountFilter, setAccountFilter, search, setSearch } = props;
 
   return (
-    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
       <div>
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-muted">
@@ -1821,59 +2845,69 @@ function Header(props: {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-center">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-col gap-5 md:flex-row md:items-center">
+        <div className="flex flex-col gap-3">
           <div className="relative">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              className="w-full rounded-2xl pl-9 md:w-[240px]"
+              className="w-full rounded-2xl pl-9 md:w-[280px]"
               placeholder="Search transactions"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
 
-          <Select value={datePreset} onValueChange={(v) => setDatePreset(v as DatePreset)}>
-            <SelectTrigger className="w-[160px] rounded-2xl">
-              <Calendar className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="this_month">This month</SelectItem>
-              <SelectItem value="last_month">Last month</SelectItem>
-              <SelectItem value="last_90">Last 90 days</SelectItem>
-              <SelectItem value="all">All time</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-nowrap items-center gap-3">
+            <Select value={datePreset} onValueChange={(v) => setDatePreset(v as DatePreset)}>
+              <SelectTrigger className="w-[150px] rounded-2xl sm:w-[190px]">
+                <Calendar className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="this_month">This month</SelectItem>
+                <SelectItem value="last_month">Last month</SelectItem>
+                <SelectItem value="last_90">Last 90 days</SelectItem>
+                <SelectItem value="all">All time</SelectItem>
+              </SelectContent>
+            </Select>
 
-          <Select value={accountFilter} onValueChange={setAccountFilter}>
-            <SelectTrigger className="w-[170px] rounded-2xl">
-              <Filter className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Account" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All accounts</SelectItem>
-              {state.accounts.map((a) => (
-                <SelectItem key={a.id} value={a.id}>
-                  {a.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <Select value={accountFilter} onValueChange={setAccountFilter}>
+              <SelectTrigger className="w-[170px] rounded-2xl sm:w-[220px]">
+                <Filter className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Account" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All accounts</SelectItem>
+                {state.accounts.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-4 md:flex-nowrap">
           <ThemeToggle theme={props.theme} onToggle={props.onThemeChange} />
-          <Button className="h-10" onClick={props.onAddTx}>
+          <Button className="h-12 whitespace-nowrap px-5 text-sm font-medium" onClick={props.onAddTx}>
             <Plus className="mr-2 h-4 w-4" /> Add
           </Button>
-          <Button className="h-10" variant="secondary" onClick={props.onImport}>
+          <Button
+            className="h-12 whitespace-nowrap px-5 text-sm font-medium"
+            variant="secondary"
+            onClick={props.onImport}
+          >
             <Import className="mr-2 h-4 w-4" /> Import
           </Button>
-          <Button className="h-10" variant="secondary" onClick={props.onExport}>
+          <Button
+            className="h-12 whitespace-nowrap px-5 text-sm font-medium"
+            variant="secondary"
+            onClick={props.onExport}
+          >
             <Download className="mr-2 h-4 w-4" /> Export
           </Button>
-          <Button className="h-10 rounded-2xl" variant="ghost">
+          <Button className="h-12 w-12 rounded-2xl" variant="ghost">
             <Settings className="h-4 w-4" />
           </Button>
         </div>
